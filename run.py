@@ -34,9 +34,7 @@ class SlackAttachmentCheck:
 
 
 if __name__ == "__main__":
-    from peewee import *
     from models import Slack
-    import pdb
     import csv
 
     query = (Slack.select())
