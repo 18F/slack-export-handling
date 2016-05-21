@@ -16,4 +16,15 @@ unzip data.zip
 cd ..
 ```
 
-Now, run `python slackToDB.py`.
+Now, run `python slackToDB.py`. This will create a sqlite database called `slack.db`.
+
+### Running the commands
+
+Now that you have a db, all that's needed is to run the following commands:
+
+```
+python run.py
+python map-users.py
+```
+
+This will generate a file called `mapped.csv`. This is your final document.
