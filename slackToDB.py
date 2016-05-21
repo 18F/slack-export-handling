@@ -39,3 +39,5 @@ for root, dirs, files in os.walk('data-import'):
         with db.atomic():
             for entry_json in data:
                 Slack.create(channel=channel, channel_date=channel_date, data=json.dumps(entry_json))
+
+db.close()
