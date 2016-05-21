@@ -43,8 +43,7 @@ if __name__ == "__main__":
     pattern = "(docs|drive).google.com"
     results = SlackAttachmentCheck.check_urls_in_attachments(pattern, rows)
 
-    print(results)
-    # with open('results.csv', 'w') as csvfile:
-    #     slackwriter = csv.writer(csvfile)
-    #     for res in results:
-    #         slackwriter.writerow(res)
+    with open('results.csv', 'w') as csvfile:
+        slackwriter = csv.writer(csvfile)
+        for res in results:
+            slackwriter.writerow(res)
