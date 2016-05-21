@@ -16,16 +16,17 @@ class SlackAttachmentCheck:
     def __init__():
         pass
 
-    def iterate_through_json_obj(filename):
-        with open(filename, 'r') as fp:
-            messages = json.load(fp)
+    def iterate_through_json_obj(messages):
+        """
+        This pulls out a messages array from a JSON file where there are attachments
+        """
         results = [msg for msg in messages if "hidden" not in msg and "attachments" in msg]
         return results
 
 
     def check_urls_in_attachments(pattern, messages):
         """
-        This checks for a regular expression in a messages array to see if there is a match
+        This checks for a pattern in a messages array to see if there is a match
         """
         results = []
         for msg in messages:
