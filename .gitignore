@@ -5,3 +5,4 @@ __pycache__/*
 .cache/*
 slack.db
 results.csv
+mapped.csv
