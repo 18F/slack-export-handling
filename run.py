@@ -27,12 +27,14 @@ class SlackAttachmentCheck:
         results = []
         for msg, attachment in rows:
             if 'attachments' in attachment:
+                file_type = 'attachment'
                 url = attachment['attachments'][0].get('from_url')
             else:
+                file_type = 'file_share'
                 if attachment.get('file'):  # Apparently, there's an edge case with uploaded null files. /shrug
                     url = attachment['file']['url_private']
             if url and re.search(pattern, url):
-                results.append((msg['id'], url, msg['channel'], msg['channel_date'], attachment['user']))
+                results.append((msg['id'], url, msg['channel'], msg['channel_date'], attachment['user'], file_type))
         return results
 
 
