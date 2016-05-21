@@ -2,10 +2,7 @@ import json
 import re
 
 """
-* -[ ] Establish database connection
-* -[ ] Iterate through all of the folders
-* -[ ] Iterate through each file in the folder
-* -[ ] Iterate through each object in the JSON file
+* -[ ] Go through the sqlite database
 * -[x] If the message has one or more attachments
 * -[x] Iterate through each attachment in the attachments
 * -[ ] Check to see whether "google.com" is in the link url

@@ -3,3 +3,4 @@ data-import/*/
 data-import/*.json
 __pycache__/*
 .cache/*
+slack.db
