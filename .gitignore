@@ -4,5 +4,4 @@ data-import/*.json
 __pycache__/*
 .cache/*
 slack.db
-results.csv
-mapped.csv
+*.csv
