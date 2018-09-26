@@ -25,6 +25,7 @@ Now that you have a db, all that's needed is to run the following commands:
 ```
 python run.py
 python map-users.py
+python dedupe.py
 ```
 
-This will generate a file called `mapped.csv`. This is your final document.
+This will generate a file called `deduped.csv`. This is your final document.
