@@ -1,6 +1,6 @@
-data-import/data.zip
-data-import/*/
-data-import/*.json
+.DS_Store
+
+data-import/*
 __pycache__/*
 .cache/*
 slack.db
