@@ -16,11 +16,36 @@ unzip data.zip
 cd ..
 ```
 
-Now, run `python slackToDB.py`. This will create a sqlite database called `slack.db`.
+You should now have `/data-import` full of the channel directories and a handful of `json` files from your export.
 
-### Running the commands
+You can now create a sqlite database and import your Slack data by running `python import_slack.py`
 
-Now that you have a db, all that's needed is to run the following commands:
+### Searching the database.
+
+You can search the sqlite database from the command line by running `search_slack.py` and passing your search term to it:
+
+`python search_slack.py 'my search term'` 
+
+By default, it will take matching results, then expand the search within the same channel by 20 minutes 
+before and after the initial result to provide extra context. You can control that context expansion by passing the number of minutes
+you'd like to expand out to `search_slack.py`:
+
+`python search_slack.py 'my search term' 30`
+
+Alternately, if you'd like to only pull exact matches, pass 0 and no expansion will happen:
+
+`python search_slack.py 'my search term' 0`
+
+
+### Working directly with the database.
+When the Slack data is imported, models are created in `models.py` using the [PeeWee ORM](http://docs.peewee-orm.com/en/latest/index.html), 
+which allows lightweight database querying with a syntax that should look pretty familiar to Django's ORM. 
+For details, see [the PeeWee docs](http://docs.peewee-orm.com/en/latest/peewee/quickstart.html#retrieving-data).
+
+
+### Legacy commands
+
+Legacy slack-url commands can still be run as before:
 
 ```
 python run.py

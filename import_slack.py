@@ -13,13 +13,55 @@ To-Do: Improve error handling
 
 import json
 import os
+import time
+from decimal import Decimal
 
-from models import db, SlackChannel, SlackMessage, SlackUser
+from models import db, Slack, SlackChannel, SlackMessage, SlackUser
 
 # This is where the Slack exported files were put.
 # It should contain a big mess o' directories (one for each channel)
 # plus a few stray json files, most notably `channels.json` and `users.json`
 SLACK_FILES_DIR = 'data-import'
+
+def legacy_import():
+    """
+    This fulfills the legacy needs from slackToDB.py
+    """
+    try:
+        db.create_tables([Slack])
+    except Exception as e:
+        # Most likely table already exists, but we'll print the error to confirm.
+        print('%s' % e)
+    for root, dirs, files in os.walk(SLACK_FILES_DIR):
+        if root == SLACK_FILES_DIR:
+            continue
+        for fname in files:
+            # Resolve channel name
+            dir_name = root.split(SLACK_FILES_DIR+'/')[1]
+            channel_date, ftype = fname.rsplit('.')
+            
+            # Guard against .ds_store and other stray files. 
+            # We only want to read json files.
+
+            if ftype == 'json':
+                jsonfile = '%s/%s/%s' % (SLACK_FILES_DIR, dir_name, fname)
+
+                with open(jsonfile, 'r') as fp:
+                    data = json.load(fp)
+                for d in data:
+                    # in the case of bot posts, there will be no user.
+                    try:
+                        Slack.get(
+                            Slack.channel == dir_name,
+                            Slack.channel_date == channel_date,
+                            Slack.data == json.dumps(d)
+                        )
+                    except Slack.DoesNotExist:
+                        Slack.create(
+                            channel = dir_name,
+                            channel_date = channel_date,
+                            data=json.dumps(d)
+                        )
 
 
 def import_channels():
@@ -102,26 +144,28 @@ def import_messages():
                 for d in data:
                     # in the case of bot posts, there will be no user.
                     if 'user' in d:
+                        #ts = Decimal(d['ts'])
+                        ts = float(d['ts'])
                         try:
                             SlackMessage.get(
                                 SlackMessage.channel_name == channel_name,
                                 SlackMessage.date == channel_date,
-                                SlackMessage.ts == d['ts']
+                                SlackMessage.ts == ts
                             )
                         except SlackMessage.DoesNotExist:
-
                             SlackMessage.create(
                                 channel_name = channel_name,
                                 user = d['user'],
                                 message = d['text'],
                                 date = channel_date,
-                                ts = d['ts']
+                                ts = ts
                             )
     print("...finished")
 
 
 if __name__ == "__main__":
     # execute only if run as a script
+    legacy_import()
     import_channels()
     import_users()
     import_messages()

@@ -13,6 +13,9 @@ class BaseModel(Model):
 
 
 class Slack(BaseModel):
+    """
+    Used solely for legacy slack-urls compatibility.
+    """
     channel = TextField()
     channel_date = TextField()
     data = TextField()
@@ -45,9 +48,15 @@ class SlackMessage(BaseModel):
     """
     Stores key info from Slack messages.
     Note we are not storing all info that may be attached to a message.
+
+    We also do not currently resolve internal link references to users, channels, etc.
+    To do so, we'll need to hunt and translate the <#C02A80ZHG> type references.
+
+    Also note that Peewee's TimestampField implementation strips milliseconds by default, 
+    but there's a workaround: https://github.com/coleifer/peewee/issues/1747
     """
     channel_name = CharField()
     user = ForeignKeyField(SlackUser, backref='messages')
     message = TextField()
     date = DateField()
-    ts = DecimalField()
+    ts = TimestampField(resolution=1e6)
