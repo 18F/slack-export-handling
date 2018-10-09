@@ -1,9 +1,12 @@
+import csv
 import datetime
 import sys
 
 from models import SlackMessage, SlackUser
 
 query = sys.argv[1]
+
+output_dir = 'search-output/'
 
 # see if minutes were passed as an arg. If not, we'll just set it.
 try:
@@ -42,6 +45,22 @@ else:
 
 print("Found %s results that match exactly and %s results when expanding the query." % (results.count(), len(expanded_results)))
 
-for r in sorted(expanded_results, key=lambda x: x.ts):
-    author = SlackUser.get(user_id=r.user)
-    print('%s wrote... "%s"' % (author.real_name, r.message))
+# Results are currently sorted by timestamp, but we may want to do 
+# some sort of channel + timestamp instead, to better capture late replies.
+sorted_results = sorted(expanded_results, key=lambda x: x.ts)
+channel_name = sorted_results[0].channel_name
+outputfile = output_dir + query.replace(' ', '_') + '_output.csv'
+
+with open(outputfile, 'w') as csvfile:
+    writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+    writer.writerow(['Channel', 'Date', 'Author', 'Message', 'Timestamp'])
+    for r in sorted_results:
+        # If the channel name has changed from what it was before,
+        # then we'll want to insert a blank line
+        if r.channel_name != channel_name:
+            writer.writerow([])
+        channel_name = r.channel_name
+        # Now go head and output the row.
+        author = SlackUser.get(user_id=r.user)
+        writer.writerow([r.channel_name, r.date , author.real_name, r.message, r.ts])
+print("Results have been written to `%s`" % outputfile)
