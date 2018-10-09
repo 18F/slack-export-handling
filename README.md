@@ -4,7 +4,7 @@
 
 * Pull down the repository.
 * Set up a virtual environment
-* Run `pip install -r requirements`
+* Run `pip install -r requirements.txt`
 
 ### Creating the database from slack export
 
