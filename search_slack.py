@@ -67,5 +67,5 @@ with open(outputfile, 'w') as csvfile:
         except Exception:
             author_name = "Slackbot"
         # Now go head and output the row.
-        writer.writerow([r.channel_name, r.date , author_name, r.message, r.ts])
+        writer.writerow([r.channel_name, r.date , author_name, r.message.encode('utf8'), r.ts])
 print("Results have been written to `%s`" % outputfile)
