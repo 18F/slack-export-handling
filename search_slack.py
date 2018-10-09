@@ -45,9 +45,9 @@ else:
 
 print("Found %s results that match exactly and %s results when expanding the query." % (results.count(), len(expanded_results)))
 
-# Results are currently sorted by timestamp, but we may want to do 
-# some sort of channel + timestamp instead, to better capture late replies.
-sorted_results = sorted(expanded_results, key=lambda x: x.ts)
+# Results are currently sorted by channel name and then timestamp, 
+# in order to better group and capture late replies.
+sorted_results = sorted(expanded_results, key=lambda x: (x.channel_name, x.ts))
 channel_name = sorted_results[0].channel_name
 outputfile = output_dir + query.replace(' ', '_') + '_output.csv'
 
@@ -60,7 +60,12 @@ with open(outputfile, 'w') as csvfile:
         if r.channel_name != channel_name:
             writer.writerow([])
         channel_name = r.channel_name
+        # Resolve any author name issues
+        try:
+            slackuser = SlackUser.get(user_id=r.user)
+            author_name = slackuser.real_name
+        except Exception:
+            author_name = "Slackbot"
         # Now go head and output the row.
-        author = SlackUser.get(user_id=r.user)
-        writer.writerow([r.channel_name, r.date , author.real_name, r.message, r.ts])
+        writer.writerow([r.channel_name, r.date , author_name, r.message, r.ts])
 print("Results have been written to `%s`" % outputfile)
