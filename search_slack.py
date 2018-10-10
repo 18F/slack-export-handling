@@ -63,7 +63,7 @@ with open(outputfile, 'w') as csvfile:
         # Resolve any author name issues
         try:
             slackuser = SlackUser.get(user_id=r.user)
-            author_name = slackuser.real_name
+            author_name = slackuser.real_name.encode('utf8')
         except Exception:
             author_name = "Slackbot"
         # Now go head and output the row.
