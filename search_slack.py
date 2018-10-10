@@ -1,5 +1,6 @@
 import csv
 import datetime
+import re
 import sys
 
 from models import SlackMessage, SlackUser
@@ -49,7 +50,9 @@ print("Found %s results that match exactly and %s results when expanding the que
 # in order to better group and capture late replies.
 sorted_results = sorted(expanded_results, key=lambda x: (x.channel_name, x.ts))
 channel_name = sorted_results[0].channel_name
-outputfile = output_dir + query.replace(' ', '_') + '_output.csv'
+# We need to ensure that the given query will be safe for a filename.
+safequery = re.sub(r'\W+','', query.replace(' ','_'))
+outputfile = output_dir + safequery + '_output.csv'
 
 with open(outputfile, 'w') as csvfile:
     writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
