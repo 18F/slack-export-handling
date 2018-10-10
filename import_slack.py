@@ -202,11 +202,12 @@ def import_messages():
                             )
     print("...finished")
 
-
+legacy = sys.argv[1]
 if __name__ == "__main__":
     # execute only if run as a script
-    legacy_import()
     import_channels()
     import_users()
     import_messages()
+    if legacy and legacy == 'legacy':
+        legacy_import()
     db.close()

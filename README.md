@@ -20,6 +20,12 @@ You should now have `/data-import` full of the channel directories and a handful
 
 You can now create a sqlite database and import your Slack data by running `python import_slack.py`
 
+Note that if you wish to use the legacy slack-url commands, you'll need to pass a `legacy` argument to the importer.
+Otherwise the database table will not be created -- it takes a while.
+
+`python import_slack.py legacy`
+
+
 ### Searching the database.
 
 You can search the sqlite database from the command line by running `search_slack.py` and passing your search term to it:
