@@ -80,7 +80,7 @@ def import_channels():
         # In a better world, we should probably throw out unexpected channels,
         # which shouldn't really happen at all.
         try:
-            SlackChannel.get(SlackChannel.channel_id == c['name'])
+            SlackChannel.get(SlackChannel.name == c['name'])
         except SlackChannel.DoesNotExist:
             SlackChannel.create(
                 channel_id = c['id'],
