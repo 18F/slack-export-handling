@@ -35,16 +35,18 @@ def legacy_import():
     for root, dirs, files in os.walk(SLACK_FILES_DIR):
         if root == SLACK_FILES_DIR:
             continue
+        
         for fname in files:
-            # Resolve channel name
             dir_name = root.split(SLACK_FILES_DIR+'/')[1]
             channel_date, ftype = fname.rsplit('.')
-            
+
             # Guard against .ds_store and other stray files. 
             # We only want to read json files.
 
             if ftype == 'json':
                 jsonfile = '%s/%s/%s' % (SLACK_FILES_DIR, dir_name, fname)
+                if dir_name.startswith('D0'):
+                    print(dir_name)
 
                 with open(jsonfile, 'r') as fp:
                     data = json.load(fp)
@@ -80,6 +82,19 @@ def import_channels():
             SlackChannel.create(
             channel_id = c['id'],
             name = c['name']
+        )
+    print('continuing with private channels...')
+    # Now load up the private (group) channels too
+    with open(SLACK_FILES_DIR + '/groups.json', "r") as channels_file:
+        channels_data = json.load(channels_file)
+    for c in channels_data:
+        try:
+            SlackChannel.get(SlackChannel.channel_id == c['id'])
+        except SlackChannel.DoesNotExist:
+            SlackChannel.create(
+            channel_id = c['id'],
+            name = c['name'],
+            private_group = True
         )
     print("...finished")
 
@@ -130,7 +145,9 @@ def import_messages():
                 channel = SlackChannel.get(SlackChannel.name == dir_name)
                 channel_name = channel.name
             except SlackChannel.DoesNotExist:
-                channel_name = 'DM'
+                #print("could not find existing Slack channel `%s` in database. Creating..." % dir_name )
+                #channel = SlackChannel.create(name = dir_name)
+                channel_name = "Unknown"
             channel_date, ftype = fname.rsplit('.')
             
             # Guard against .ds_store and other stray files. 

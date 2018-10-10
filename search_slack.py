@@ -3,7 +3,7 @@ import datetime
 import re
 import sys
 
-from models import SlackMessage, SlackUser
+from models import SlackMessage, SlackUser, SlackChannel
 
 query = sys.argv[1]
 
@@ -54,10 +54,12 @@ channel_name = sorted_results[0].channel_name
 safequery = re.sub(r'\W+','', query.replace(' ','_'))
 outputfile = output_dir + safequery + '_output.csv'
 
-with open(outputfile, 'w') as csvfile:
+with open(outputfile, 'w', encoding='utf8') as csvfile:
     writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
-    writer.writerow(['Channel', 'Date', 'Author', 'Message', 'Timestamp'])
+    writer.writerow(['Channel', 'Date', 'Author', 'Message', 'Timestamp', 'Private Group'])
     for r in sorted_results:
+        # get the related channel. We'll need this later.
+        channel = SlackChannel.get(name=r.channel_name)
         # If the channel name has changed from what it was before,
         # then we'll want to insert a blank line
         if r.channel_name != channel_name:
@@ -66,9 +68,9 @@ with open(outputfile, 'w') as csvfile:
         # Resolve any author name issues
         try:
             slackuser = SlackUser.get(user_id=r.user)
-            author_name = slackuser.real_name.encode('utf8')
+            author_name = slackuser.real_name
         except Exception:
             author_name = "Slackbot"
         # Now go head and output the row.
-        writer.writerow([r.channel_name.encode('utf8'), r.date , author_name, r.message.encode('utf8'), r.ts])
+        writer.writerow([r.channel_name, r.date , author_name, r.message, r.ts, channel.private_group])
 print("Results have been written to `%s`" % outputfile)

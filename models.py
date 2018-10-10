@@ -24,12 +24,16 @@ class Slack(BaseModel):
 class SlackChannel(BaseModel):
     """
     Stores key info on Slack channels.
-    There is more info available in channels.json
-    but for our purposes, most likely only the ID
-    and name are needed.
+    There is more info available in channels.json but for our purposes, 
+    most likely only the ID and name are needed.
+
+    Having channel_id null isn't a great idea, but so long as we're finding channels 
+    that aren't in channels.json I'm not sure what we can do about it. 
+    To compensate somewhat, we'll index name and use it as a sort-of key.
     """
-    channel_id = CharField()
-    name = CharField()
+    channel_id = CharField(null=True)
+    name = CharField(unique=True, index=True)
+    private_group = BooleanField(default=False)
 
 
 class SlackUser(BaseModel):
@@ -60,3 +64,5 @@ class SlackMessage(BaseModel):
     message = TextField()
     date = DateField()
     ts = TimestampField(resolution=1e6)
+
+
