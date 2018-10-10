@@ -203,7 +203,11 @@ def import_messages():
                             )
     print("...finished")
 
-legacy = sys.argv[1]
+try:
+    legacy = sys.argv[1]
+except IndexError:
+    legacy = None
+
 if __name__ == "__main__":
     # execute only if run as a script
     import_channels()
