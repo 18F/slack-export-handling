@@ -83,7 +83,7 @@ def import_channels():
             channel_id = c['id'],
             name = c['name']
         )
-    print('continuing with private group channels...')
+    print('...continuing with private group channels...')
     # Now load up the private (group) channels
     with open(SLACK_FILES_DIR + '/groups.json', "r") as channels_file:
         channels_data = json.load(channels_file)
@@ -96,7 +96,7 @@ def import_channels():
             name = c['name'],
             private_group = True
         )
-    print('and finally private messaging channels...')
+    print('...and finally private messaging channels...')
     # Now load up the private (dm) channels too
     with open(SLACK_FILES_DIR + '/dms.json', "r") as channels_file:
         channels_data = json.load(channels_file)
@@ -158,9 +158,12 @@ def import_messages():
                 channel = SlackChannel.get(SlackChannel.name == dir_name)
                 channel_name = channel.name
             except SlackChannel.DoesNotExist:
-                #print("could not find existing Slack channel `%s` in database. Creating..." % dir_name )
-                #channel = SlackChannel.create(name = dir_name)
-                channel_name = "Unknown"
+                print("Unexpected channel data encounted! Could not find existing Slack channel `%s` in database." % dir_name )
+                print("Creating new channel, but proceed with caution.")
+                channel = SlackChannel.create(
+                    channel_id = dir_name,
+                    name = dir_name
+                )
             channel_date, ftype = fname.rsplit('.')
             
             # Guard against .ds_store and other stray files. 
