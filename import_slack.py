@@ -83,8 +83,8 @@ def import_channels():
             channel_id = c['id'],
             name = c['name']
         )
-    print('continuing with private channels...')
-    # Now load up the private (group) channels too
+    print('continuing with private group channels...')
+    # Now load up the private (group) channels
     with open(SLACK_FILES_DIR + '/groups.json', "r") as channels_file:
         channels_data = json.load(channels_file)
     for c in channels_data:
@@ -95,6 +95,19 @@ def import_channels():
             channel_id = c['id'],
             name = c['name'],
             private_group = True
+        )
+    print('and finally private messaging channels...')
+    # Now load up the private (dm) channels too
+    with open(SLACK_FILES_DIR + '/dms.json', "r") as channels_file:
+        channels_data = json.load(channels_file)
+    for c in channels_data:
+        try:
+            SlackChannel.get(SlackChannel.channel_id == c['id'])
+        except SlackChannel.DoesNotExist:
+            SlackChannel.create(
+            channel_id = c['id'],
+            name = 'DM: ' + c['id'],
+            private_messages = True
         )
     print("...finished")
 

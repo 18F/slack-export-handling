@@ -34,6 +34,7 @@ class SlackChannel(BaseModel):
     channel_id = CharField(null=True)
     name = CharField(unique=True, index=True)
     private_group = BooleanField(default=False)
+    private_messages = BooleanField(default=False)
 
 
 class SlackUser(BaseModel):
