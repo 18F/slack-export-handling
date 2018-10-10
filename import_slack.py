@@ -45,8 +45,6 @@ def legacy_import():
 
             if ftype == 'json':
                 jsonfile = '%s/%s/%s' % (SLACK_FILES_DIR, dir_name, fname)
-                if dir_name.startswith('D0'):
-                    print(dir_name)
 
                 with open(jsonfile, 'r') as fp:
                     data = json.load(fp)
@@ -76,13 +74,17 @@ def import_channels():
     with open(SLACK_FILES_DIR + '/channels.json', "r") as channels_file:
         channels_data = json.load(channels_file)
     for c in channels_data:
+        # Because we may create channels by name when importing messages
+        # if we see unexpected channel info, we have to get by name here. 
+        # In a better world, we should probably throw out unexpected channels,
+        # which shouldn't really happen at all.
         try:
-            SlackChannel.get(SlackChannel.channel_id == c['id'])
+            SlackChannel.get(SlackChannel.channel_id == c['name'])
         except SlackChannel.DoesNotExist:
             SlackChannel.create(
-            channel_id = c['id'],
-            name = c['name']
-        )
+                channel_id = c['id'],
+                name = c['name']
+            )
     print('...continuing with private group channels...')
     # Now load up the private (group) channels
     with open(SLACK_FILES_DIR + '/groups.json', "r") as channels_file:
@@ -148,12 +150,17 @@ def import_messages():
     except Exception as e:
         # Most likely table already exists, but we'll print the error to confirm.
         print('%s' % e)
+    file_count = len(os.listdir(SLACK_FILES_DIR))
+    print("... processing %s message files" % file_count)
     for root, dirs, files in os.walk(SLACK_FILES_DIR):
         if root == SLACK_FILES_DIR:
             continue
+        file_count -= 1
+        if file_count % 1000 == 0 and file_count != 0:
+            print('... %s remaining...' % file_count)
         for fname in files:
-            # Resolve channel name
             dir_name = root.split('data-import/')[1]
+            # Resolve channel name
             try:
                 channel = SlackChannel.get(SlackChannel.name == dir_name)
                 channel_name = channel.name
