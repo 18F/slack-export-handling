@@ -1,3 +1,4 @@
+import argparse
 import csv
 import datetime
 import re
@@ -7,34 +8,44 @@ from models import SlackMessage, SlackUser, SlackChannel
 
 query = sys.argv[1]
 
-output_dir = 'search-output/'
+parser = argparse.ArgumentParser(description='Process some queries.')
+parser.add_argument(
+    'queries', nargs='+',
+    help='A query phrase to search for. Be sure to wrap multi-word phrases in quotes.',
+)
+parser.add_argument('--expand_to', default=20, type=int,
+    help='Time for to expand the search out to. Default: 20'
+)
 
-# see if minutes were passed as an arg. If not, we'll just set it.
-try:
-    expanded_minutes = int(sys.argv[2])
-except IndexError:
-    expanded_minutes = 20
+output_dir = 'search-output/'
+args = parser.parse_args()
+results = []
 expanded_results = []
 
-print('Searching Slack DB for "%s"' % query)
+# First we'll build out initial results for each query.
+# We're appending to the `results` list to avoid duplicates
+# if the same message is found by multiple queries.
+for query in args.queries:
+    print('Searching Slack DB for "%s"' % query)
 
-results = SlackMessage.select().where(SlackMessage.message.contains(query))
+    query_results = SlackMessage.select().where(SlackMessage.message.contains(query))
+    for r in query_results:
+        if r not in results:
+            results.append(r)
 
-# All this looping is wildly inefficent, but 
-# I don't see an efficient way to combine querysets in peewee
-# and itertools chain wouldn't, as far as I know, check if the records
-# are already in the collection. Luckily, the results set should be pretty small, 
-# So it shouldn't be a problem...
 
-if expanded_minutes is 0:
+print('Found %s results for %s. Now expanding to %s minutes either direction...' % (len(results), args.queries, args.expand_to))
+# Now that we've built out the initial results,
+# we'll expand them out to the given time.
+# All this looping is a little inefficent, but
+# performant enough given the small results sizes.
+if args.expand_to is 0:
     expanded_results = results
 else:
     for r in results:
-        
-        minus_time = r.ts - datetime.timedelta(minutes=expanded_minutes)
-        plus_time = r.ts + datetime.timedelta(minutes=expanded_minutes)
-        
-        # TODO: fix where this may pull in stray DMs because channel_name is just "dm", undifferentiated
+        minus_time = r.ts - datetime.timedelta(minutes=args.expand_to)
+        plus_time = r.ts + datetime.timedelta(minutes=args.expand_to)
+
         r_expanded = SlackMessage.select().where(
             SlackMessage.ts > minus_time,
             SlackMessage.ts < plus_time,
@@ -44,14 +55,15 @@ else:
             if x not in expanded_results:
                 expanded_results.append(x)
 
-print("Found %s results that match exactly and %s results when expanding the query." % (results.count(), len(expanded_results)))
+print("Found %s results when expanding the query." % (len(expanded_results)))
 
 # Results are currently sorted by channel name and then timestamp, 
 # in order to better group and capture late replies.
 sorted_results = sorted(expanded_results, key=lambda x: (x.channel_name, x.ts))
 channel_name = sorted_results[0].channel_name
 # We need to ensure that the given query will be safe for a filename.
-safequery = re.sub(r'\W+','', query.replace(' ','_'))
+queries_string = '_'.join(args.queries)
+safequery = re.sub(r'\W+','', queries_string.replace(' ','_'))
 outputfile = output_dir + safequery + '_output.csv'
 
 with open(outputfile, 'w', encoding='utf8') as csvfile:

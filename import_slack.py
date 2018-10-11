@@ -109,7 +109,7 @@ def import_channels():
         except SlackChannel.DoesNotExist:
             SlackChannel.create(
             channel_id = c['id'],
-            name = 'DM: ' + c['id'],
+            name = c['id'],
             private_messages = True
         )
     print("...finished")

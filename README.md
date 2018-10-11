@@ -26,24 +26,35 @@ Otherwise the database table will not be created -- it takes a while.
 `python import_slack.py legacy`
 
 
-### Searching the database.
+### Searching the database
 
 You can search the sqlite database from the command line by running `search_slack.py` and passing your search term to it:
 
-`python search_slack.py 'my search term'` 
+`python search_slack.py 'my search term'`
 
-By default, it will take matching results, then expand the search within the same channel by 20 minutes 
-before and after the initial result to provide extra context. You can control that context expansion by passing the number of minutes
-you'd like to expand out to `search_slack.py`:
+You can also pass multiple terms, which will combine the results, removing duplicates. So, for example, if you wanted to search for 
+"Hello world" and "My first blog post", you would pass in:
 
-`python search_slack.py 'my search term' 30`
+`python search_slack.py "Hello world" "My first blog post"`
+
+Which would find any references to either of those phrases. Remember, multi-word phrases will need to be wrapped in quotes. 
+Single words do not, but it's still not a bad habit to get into.
+
+
+#### Expanding or contracting the search
+
+By default, the search will get matching results for your terms, then expand the search within the same channel by 20 minutes 
+before and after the initial result to provide extra context. You can control that context expansion with the `--expand_to` argument
+and by passing the number of minutes you'd like to expand out to `search_slack.py`:
+
+`python search_slack.py 'my search term' --expand_to=30`
 
 Alternately, if you'd like to only pull exact matches, pass 0 and no expansion will happen:
 
-`python search_slack.py 'my search term' 0`
+`python search_slack.py 'my search term' --expand_to=0`
 
 
-### Working directly with the database.
+### Working directly with the database
 When the Slack data is imported, models are created in `models.py` using the [PeeWee ORM](http://docs.peewee-orm.com/en/latest/index.html), 
 which allows lightweight database querying with a syntax that should look pretty familiar to Django's ORM. 
 For details, see [the PeeWee docs](http://docs.peewee-orm.com/en/latest/peewee/quickstart.html#retrieving-data).
