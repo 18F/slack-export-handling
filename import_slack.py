@@ -1,16 +1,5 @@
 #! /usr/bin/env python
 
-"""
-slackToDB.py
-* -[x] Establish database connection
-* -[x] Iterate through all of the folders
-* -[x] Iterate through each file in the folder
-* -[x] Iterate through each object in the JSON file
-* -[x] Save the objects into the sqlite database
-
-To-Do: Improve error handling
-"""
-
 import json
 import os
 import sys
