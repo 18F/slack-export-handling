@@ -3,8 +3,8 @@
 ### Setting up the repository
 
 * Pull down the repository.
-* Set up a virtual environment
-* Run `pip install -r requirements.txt`
+* Set up a virtual environment.
+* Run `pip install -r requirements.txt`.
 
 ### Creating the database from slack export
 
@@ -25,12 +25,14 @@ Otherwise the database table will not be created -- it takes a while.
 
 `python import_slack.py legacy`
 
+For more information, see [Legacy commands](#legacy-commands) below.
+
 
 ### Searching the database
 
 You can search the sqlite database from the command line by running `search_slack.py` and passing your search term to it:
 
-`python search_slack.py 'my search term'`
+`python search_slack.py "my search term"`
 
 You can also pass multiple terms, which will combine the results, removing duplicates. So, for example, if you wanted to search for 
 "Hello world" and "My first blog post", you would pass in:

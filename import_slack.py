@@ -4,7 +4,6 @@ import json
 import os
 import sys
 import time
-from decimal import Decimal
 
 from models import db, Slack, SlackChannel, SlackMessage, SlackUser
 
@@ -13,9 +12,22 @@ from models import db, Slack, SlackChannel, SlackMessage, SlackUser
 # plus a few stray json files, most notably `channels.json` and `users.json`
 SLACK_FILES_DIR = 'data-import'
 
+
+def json_data(filename):
+    """
+    Simple helper to read and load the json
+    """
+    filepath = '%s/%s' % (SLACK_FILES_DIR, filename)
+    with open(filepath, "r") as json_file:
+        return json.load(json_file)
+
+
 def legacy_import():
     """
-    This fulfills the legacy needs from slackToDB.py
+    This fulfills the legacy needs from slackToDB.py from the deprecated
+    `slack-urls` repo and is only called if a `--legacy` argument is passed to the importer.
+    For details see the legacy commands documentation:
+    https://github.com/18F/slack-export-handling/tree/import-search-slack#legacy-commands
     """
     try:
         db.create_tables([Slack])
@@ -23,8 +35,9 @@ def legacy_import():
         # Most likely table already exists, but we'll print the error to confirm.
         print('%s' % e)
     for root, dirs, files in os.walk(SLACK_FILES_DIR):
-        if root == SLACK_FILES_DIR:
-            continue
+        if root != SLACK_FILES_DIR:
+            print("You don't appear to be in the correct directory. Please double-check")
+            break
         
         for fname in files:
             dir_name = root.split(SLACK_FILES_DIR+'/')[1]
@@ -34,11 +47,8 @@ def legacy_import():
             # We only want to read json files.
 
             if ftype == 'json':
-                jsonfile = '%s/%s/%s' % (SLACK_FILES_DIR, dir_name, fname)
-
-                with open(jsonfile, 'r') as fp:
-                    data = json.load(fp)
-                for d in data:
+                jsonfile = '%s/%s' % (dir_name, fname)
+                for d in json_data(jsonfile):
                     # in the case of bot posts, there will be no user.
                     try:
                         Slack.get(
@@ -61,13 +71,11 @@ def import_channels():
     except Exception as e:
         # Most likely table already exists, but we'll print the error to confirm.
         print('%s' % e)
-    with open(SLACK_FILES_DIR + '/channels.json', "r") as channels_file:
-        channels_data = json.load(channels_file)
-    for c in channels_data:
+    for c in json_data('channels.json'):
         # Because we may create channels by name when importing messages
         # if we see unexpected channel info, we have to get by name here. 
-        # In a better world, we should probably throw out unexpected channels,
-        # which shouldn't really happen at all.
+        # In a better world, we should probably throw out unexpected channels.
+        # There *shouldn't* be any channels that aren't represented in channels.json
         try:
             SlackChannel.get(SlackChannel.name == c['name'])
         except SlackChannel.DoesNotExist:
@@ -76,10 +84,7 @@ def import_channels():
                 name = c['name']
             )
     print('...continuing with private group channels...')
-    # Now load up the private (group) channels
-    with open(SLACK_FILES_DIR + '/groups.json', "r") as channels_file:
-        channels_data = json.load(channels_file)
-    for c in channels_data:
+    for c in json_data('groups.json'):
         try:
             SlackChannel.get(SlackChannel.channel_id == c['id'])
         except SlackChannel.DoesNotExist:
@@ -89,10 +94,7 @@ def import_channels():
             private_group = True
         )
     print('...and finally private messaging channels...')
-    # Now load up the private (dm) channels too
-    with open(SLACK_FILES_DIR + '/dms.json', "r") as channels_file:
-        channels_data = json.load(channels_file)
-    for c in channels_data:
+    for c in json_data('dms.json'):
         try:
             SlackChannel.get(SlackChannel.channel_id == c['id'])
         except SlackChannel.DoesNotExist:
@@ -105,7 +107,7 @@ def import_channels():
 
 
 def import_users():
-    print('Beginning Slack user import....')
+    print("Beginning Slack user import....")
     try:
         db.create_tables([SlackUser])
     except Exception as e:
@@ -155,8 +157,9 @@ def import_messages():
                 channel = SlackChannel.get(SlackChannel.name == dir_name)
                 channel_name = channel.name
             except SlackChannel.DoesNotExist:
-                print("Unexpected channel data encounted! Could not find existing Slack channel `%s` in database." % dir_name )
+                print("Unexpected channel data encountered! Could not find Slack channel `%s` in database." % dir_name )
                 print("Creating new channel, but proceed with caution.")
+                # Note that because the channel is unexpected we have no ID and have to fake it.
                 channel = SlackChannel.create(
                     channel_id = dir_name,
                     name = dir_name
@@ -166,7 +169,8 @@ def import_messages():
             # Guard against .ds_store and other stray files. 
             # We only want to read json files.
 
-            if ftype == 'json':
+            if ftype != 'json':
+                continue
                 jsonfile = '%s/%s/%s' % (SLACK_FILES_DIR, dir_name, fname)
 
                 with open(jsonfile, 'r') as fp:
@@ -174,7 +178,6 @@ def import_messages():
                 for d in data:
                     # in the case of bot posts, there will be no user.
                     if 'user' in d:
-                        #ts = Decimal(d['ts'])
                         ts = float(d['ts'])
                         try:
                             SlackMessage.get(
@@ -192,16 +195,11 @@ def import_messages():
                             )
     print("...finished")
 
-try:
-    legacy = sys.argv[1]
-except IndexError:
-    legacy = None
-
 if __name__ == "__main__":
     # execute only if run as a script
     import_channels()
     import_users()
     import_messages()
-    if legacy and legacy == 'legacy':
+    if len(sys.argv) == 2 and sys.argv[1] == 'legacy':
         legacy_import()
     db.close()
