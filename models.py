@@ -16,8 +16,8 @@ class Slack(BaseModel):
     """
     This fulfills the legacy needs from slackToDB.py from the deprecated
     `slack-urls` repo and is only populated if a `--legacy` argument is passed to the importer.
-    For details see the legacy commands documentation:
-    https://github.com/18F/slack-export-handling/tree/import-search-slack#legacy-commands
+    For details see the legacy commands documentation: 
+    ../README.md#legacy-commands
     """
 
     channel = TextField()

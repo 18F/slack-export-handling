@@ -27,7 +27,7 @@ def legacy_import():
     This fulfills the legacy needs from slackToDB.py from the deprecated
     `slack-urls` repo and is only called if a `--legacy` argument is passed to the importer.
     For details see the legacy commands documentation:
-    https://github.com/18F/slack-export-handling/tree/import-search-slack#legacy-commands
+    ../README.md#legacy-commands
     """
     try:
         db.create_tables([Slack])
@@ -113,10 +113,7 @@ def import_users():
     except Exception as e:
         # Most likely table already exists, but we'll print the error to confirm.
         print('%s' % e)
-    with open(SLACK_FILES_DIR + '/users.json', "r") as f:
-        data = json.load(f)
-    for d in data:
-        
+    for d in json_data('users.json'):
         # There's some key error on real_name.
         # probably related to older schema when real name was only in profile.
         try:
@@ -152,30 +149,25 @@ def import_messages():
             print('... %s remaining...' % file_count)
         for fname in files:
             dir_name = root.split('data-import/')[1]
-            # Resolve channel name
-            try:
-                channel = SlackChannel.get(SlackChannel.name == dir_name)
-                channel_name = channel.name
-            except SlackChannel.DoesNotExist:
-                print("Unexpected channel data encountered! Could not find Slack channel `%s` in database." % dir_name )
-                print("Creating new channel, but proceed with caution.")
-                # Note that because the channel is unexpected we have no ID and have to fake it.
-                channel = SlackChannel.create(
-                    channel_id = dir_name,
-                    name = dir_name
-                )
             channel_date, ftype = fname.rsplit('.')
-            
             # Guard against .ds_store and other stray files. 
             # We only want to read json files.
+            if ftype == 'json':
+                # Resolve channel name
+                try:
+                    channel = SlackChannel.get(SlackChannel.name == dir_name)
+                    channel_name = channel.name
+                except SlackChannel.DoesNotExist:
+                    print("Unexpected channel data encountered! Could not find Slack channel `%s` in database." % dir_name )
+                    print("Creating new channel, but proceed with caution.")
+                    # Note that because the channel is unexpected we have no ID and have to fake it.
+                    channel = SlackChannel.create(
+                        channel_id = dir_name,
+                        name = dir_name
+                    )
 
-            if ftype != 'json':
-                continue
-                jsonfile = '%s/%s/%s' % (SLACK_FILES_DIR, dir_name, fname)
-
-                with open(jsonfile, 'r') as fp:
-                    data = json.load(fp)
-                for d in data:
+                jsonfile = '%s/%s' % (dir_name, fname)
+                for d in json_data(jsonfile):
                     # in the case of bot posts, there will be no user.
                     if 'user' in d:
                         ts = float(d['ts'])
@@ -200,6 +192,8 @@ if __name__ == "__main__":
     import_channels()
     import_users()
     import_messages()
+    # check if the `--legacy` argument was passed.
+    # if so, do that import too.
     if len(sys.argv) == 2 and sys.argv[1] == 'legacy':
         legacy_import()
     db.close()
