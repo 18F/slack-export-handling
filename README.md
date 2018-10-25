@@ -1,3 +1,9 @@
+## slack-export-handling
+
+Sometimes there are occasions when a Slack export needs to be searched. For example, there might be need to find a record of a conversation between former employees.
+
+Slack already includes a way to export all records, but there's no way to search those exports. In order to make a search process quick (and to avoid people having to manually read more records than needed), we created this tool.
+
 ## Set up
 
 ### Setting up the repository
