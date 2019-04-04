@@ -7,3 +7,5 @@ __pycache__/*
 slack.db
 *.csv
 search-output/*.csv
+*.pyc
+venv

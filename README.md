@@ -10,6 +10,21 @@ Slack already includes a way to export all records, but there's no way to search
 
 * Pull down the repository.
 * Set up a virtual environment.
+
+For Mac:
+``` 
+python3 -m pip install --user virtualenv
+python3 -m virtualenv venv
+source venv/bin/activate
+```
+
+For Windows:
+```
+py -m pip install --user virtualenv
+py -m virtualenv venv
+.\venv\Scripts\activate
+```
+
 * Run `pip install -r requirements.txt`.
 
 ### Creating the database from slack export
