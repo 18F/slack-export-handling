@@ -18,7 +18,7 @@ def json_data(filename):
     Simple helper to read and load the json
     """
     filepath = '%s/%s' % (SLACK_FILES_DIR, filename)
-    with open(filepath, "r") as json_file:
+    with open(filepath, "r", encoding="utf8") as json_file:
         return json.load(json_file)
 
 
