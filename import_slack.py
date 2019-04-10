@@ -148,7 +148,9 @@ def import_messages():
         if file_count % 1000 == 0 and file_count != 0:
             print('... %s remaining...' % file_count)
         for fname in files:
-            dir_name = root.split('data-import/')[1]
+            dir_name = root.split('data-import')[1]
+            dir_name = ''.join(dir_name.split('/', 1))
+            dir_name = ''.join(dir_name.split('\\', 1))
             channel_date, ftype = fname.rsplit('.')
             # Guard against .ds_store and other stray files. 
             # We only want to read json files.
